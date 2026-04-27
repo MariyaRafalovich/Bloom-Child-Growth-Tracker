@@ -76,12 +76,17 @@ export default function App() {
     
     if (supabase) {
       setIsSyncing(true);
-      await supabase.from('profiles').upsert({
-        id: 1, // Single profile for now
-        ...newProfile,
-        updated_at: new Date()
-      });
-      setIsSyncing(false);
+      try {
+        await supabase.from('profiles').upsert({
+          id: 1, // Single profile for now
+          ...newProfile,
+          updated_at: new Date()
+        });
+      } catch (err) {
+        console.error("Profile sync failed:", err);
+      } finally {
+        setIsSyncing(false);
+      }
     }
   };
 
@@ -92,13 +97,20 @@ export default function App() {
 
     if (supabase) {
       setIsSyncing(true);
-      await supabase.from('observations').insert({
-        id: entry.id,
-        input: entry.input,
-        analysis: entry.analysis,
-        created_at: entry.date
-      });
-      setIsSyncing(false);
+      try {
+        const { error } = await supabase.from('observations').insert({
+          id: entry.id,
+          input: entry.input,
+          analysis: entry.analysis,
+          created_at: entry.date
+        });
+        if (error) throw error;
+      } catch (err) {
+        console.error("Observation sync failed:", err);
+        // We still have it in localStorage, so the app won't crash
+      } finally {
+        setIsSyncing(false);
+      }
     }
   };
 
