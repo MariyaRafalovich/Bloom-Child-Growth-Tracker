@@ -27,18 +27,18 @@ export default function App() {
       setIsSyncing(true);
       try {
         // Fetch latest profile
-        const { data: profileData } = await supabase
+        const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
-          .limit(1)
-          .single();
+          .limit(1);
         
-        if (profileData) {
+        if (profileData && profileData.length > 0 && !profileError) {
+          const firstProfile = profileData[0];
           const formattedProfile = {
-            name: profileData.name,
-            age: profileData.age,
-            interests: profileData.interests,
-            temperament: profileData.temperament
+            name: firstProfile.name,
+            age: firstProfile.age,
+            interests: firstProfile.interests,
+            temperament: firstProfile.temperament
           };
           setProfile(formattedProfile);
           localStorage.setItem("bloom_profile", JSON.stringify(formattedProfile));
